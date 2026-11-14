@@ -6070,6 +6070,85 @@ function deleteGenEntry(id){if(typeof isAdmin==='function'&&!isAdmin()){alert('�
 function renderGenTab(){genSeed(); var cur=genGet('michi_gen_current',{'Perkins-640kVA':1594.12,'Cummins-640kVA':2480.6}); var pn=genNext('Perkins-640kVA'); var cn=genNext('Cummins-640kVA'); var prem=Math.round((pn.hrs-cur['Perkins-640kVA'])*10)/10; var crem=Math.round((cn.hrs-cur['Cummins-640kVA'])*10)/10; var pe=document.getElementById('genPerkCurrent'); if(pe) pe.textContent=cur['Perkins-640kVA'].toFixed(1)+' Hrs'; var pr=document.getElementById('genPerkRem'); if(pr){pr.textContent=prem+' hrs'; pr.style.color=prem<=0?'#c62828':prem<=20?'#e65100':'#17643b';} var ps=document.getElementById('genPerkRemSub'); if(ps) ps.textContent='Next: '+pn.hrs+' Hrs / '+genFmt(pn.date)+' | '+(prem<=0?'OVERDUE':prem+' hrs left'); var ce=document.getElementById('genCumCurrent'); if(ce) ce.textContent=cur['Cummins-640kVA'].toFixed(1)+' Hrs'; var cr=document.getElementById('genCumRem'); if(cr){cr.textContent=crem+' hrs'; cr.style.color=crem<=0?'#c62828':crem<=20?'#e65100':'#17643b';} var cs=document.getElementById('genCumRemSub'); if(cs) cs.textContent='Next: '+cn.hrs+' Hrs / '+genFmt(cn.date)+' | '+(crem<=0?'OVERDUE - SERVICE NOW':crem+' hrs left'); var al=document.getElementById('genAlert'); if(al){ if(crem<=0){al.style.display='block'; al.textContent='🔴 CUMMINS OVERDUE by '+Math.abs(crem).toFixed(1)+' hrs - Full Combined Service due NOW. Use Perkins-640kVA first.';} else if(prem<=20){al.style.display='block'; al.style.background='#fff8e1'; al.textContent='⚠️ Perkins-640kVA DUE SOON: '+prem+' hrs left.';} else {al.style.display='none';} } var s=genGet('michi_gen_services',[]); var sr=document.getElementById('genSvcRows'); if(sr) sr.innerHTML=s.map(function(x){var n=genNext(x.gen); return '<tr><td>'+x.date+'</td><td>'+x.gen+'</td><td>'+x.hrs+'</td><td>'+(x.hrs+200).toFixed(1)+'</td><td>'+n.date+'</td><td>'+(x.by||'')+'</td></tr>';}).join('')||'<tr><td colspan="6">No service yet</td></tr>'; var f=document.getElementById('genFilter')?document.getElementById('genFilter').value:'All'; var fd=document.getElementById('genFilterDate')?document.getElementById('genFilterDate').value:''; var e=genGet('michi_gen_entries',[]).filter(function(x){return (f==='All'||x.gen===f)&&(!fd||x.date===fd);}); var hr=document.getElementById('genHistRows'); if(hr) hr.innerHTML=e.slice().reverse().map(function(x){return '<tr><td>'+x.date+'</td><td>'+x.gen+'</td><td>'+x.hrs+'</td><td>'+x.after+'</td><td>'+(x.v1||'')+'/'+(x.v2||'')+'/'+(x.v3||'')+'</td><td>'+(x.i1||'')+'/'+(x.i2||'')+'/'+(x.i3||'')+'</td><td>'+(x.pf||'')+'</td><td></td><td></td><td>'+(x.fuelUsed||'')+'</td><td></td><td>'+(x.reason||'')+'</td><td>'+(x.op||'')+'</td><td>'+(x.notes||'')+'</td><td><button type="button" onclick="deleteGenEntry('+x.id+')">🗑️</button></td></tr>';}).join('')||'<tr><td colspan="16" class="muted">No generator entries yet. Seeded service below.</td></tr>';}
 document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-tab="Generators"]'); if(b){setTimeout(function(){renderGenTab(); var st=document.getElementById('pageSubtitle'); if(st) st.textContent='Generators - Full Combined Service every 200 hrs / 6 months';},50);}});
 setTimeout(renderGenTab,800);
-</script></body></html>
+</script>
+<!-- MICHI AUTH GATE - SAME UI, ADDS SIGN-IN + WAITING + WATERMARK ONLY -->
+<script src="/__/firebase/10.12.2/firebase-app-compat.js"></script>
+<script src="/__/firebase/10.12.2/firebase-auth-compat.js"></script>
+<script src="/__/firebase/10.12.2/firebase-firestore-compat.js"></script>
+<script src="/__/firebase/init.js"></script>
+<script>
+window.MICHI_ROLE = 'pending';
+window.MICHI_USER = null;
+function michiShowGate(msg){
+  var g=document.getElementById('michiAuthGate'); if(!g){
+    g=document.createElement('div'); g.id='michiAuthGate';
+    g.style.cssText='position:fixed;inset:0;z-index:99999;background:#0f2a1a;color:#fff;display:flex;align-items:center;justify-content:center;padding:20px';
+    g.innerHTML='<div style="max-width:380px;width:100%;background:#fff;color:#222;border-radius:12px;padding:20px"><h2 style="margin:0 0 6px">Michimikuru Power App</h2><p id="michiGateMsg" style="font-size:13px;color:#555"></p><div id="michiGateForm"><div class="field"><label>Full Name</label><input id="michiName" placeholder="e.g. Stephen Kimathi"></div><div class="field"><label>Email</label><input id="michiEmail" type="email" placeholder="you@email.com"></div><div class="field"><label>Password</label><input id="michiPass" type="password" placeholder="Password"></div><div class="field"><label>Requested Role</label><select id="michiRoleReq"><option>Electrician</option><option>Senior Electrician</option><option>Data Clerk</option><option>Plant</option><option>Manager</option><option>Admin</option></select></div><div class="row"><button onclick="michiSignUp()">Sign Up</button><button class="secondary" onclick="michiSignIn()">Sign In</button></div><p style="font-size:12px;color:#666;margin-top:10px">New account goes to Pending. Admin must verify before you can enter data.</p></div><div id="michiGateWaiting" style="display:none"><h3>Waiting for Admin verification</h3><p>Your account is pending. Admin will verify you, then you can enter data. You can close the app and try again later.</p><button class="secondary" onclick="michiSignOut()">Sign Out</button></div></div>';
+    document.body.appendChild(g);
+  }
+  g.style.display='flex';
+  if(msg) {var m=document.getElementById('michiGateMsg'); if(m) m.textContent=msg;}
+}
+function michiHideGate(){var g=document.getElementById('michiAuthGate'); if(g) g.style.display='none';}
+function michiApplyWatermark(){
+  try{
+    var old=document.getElementById('michiWatermark'); if(old) old.remove();
+    if(window.MICHI_ROLE==='Admin') return;
+    var w=document.createElement('div'); w.id='michiWatermark';
+    w.style.cssText='position:fixed;inset:0;z-index:99998;pointer-events:none;opacity:0.07;font-size:18px;color:#000;overflow:hidden';
+    var name=(window.MICHI_USER&&window.MICHI_USER.name)||(window.MICHI_USER&&window.MICHI_USER.email)||'User';
+    var txt=name+' • '+window.MICHI_ROLE+' • '+new Date().toLocaleString('en-GB');
+    var inner=''; for(var i=0;i<30;i++){inner+='<div style="transform:rotate(-30deg);white-space:nowrap;margin:40px 0">'+txt+'</div>';}
+    w.innerHTML=inner; document.body.appendChild(w);
+    document.addEventListener('contextmenu',function(e){if(window.MICHI_ROLE!=='Admin') e.preventDefault();});
+    document.addEventListener('copy',function(e){if(window.MICHI_ROLE!=='Admin') e.preventDefault();});
+    document.addEventListener('keydown',function(e){if(window.MICHI_ROLE!=='Admin'&&((e.ctrlKey||e.metaKey)&&(e.key==='p'||e.key==='s'||e.key==='c')) ) e.preventDefault();});
+  }catch(err){}
+}
+function michiSignUp(){
+  try{
+    var email=document.getElementById('michiEmail').value.trim();
+    var pass=document.getElementById('michiPass').value;
+    var name=document.getElementById('michiName').value.trim();
+    var role=document.getElementById('michiRoleReq').value;
+    if(!email||!pass||!name){alert('Fill Name, Email, Password');return;}
+    firebase.auth().createUserWithEmailAndPassword(email,pass).then(function(cred){
+      return firebase.firestore().collection('users').doc(cred.user.uid).set({name:name,email:email,requestedRole:role,role:'pending',status:'pending',createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+    }).then(function(){michiShowGate('Signed up. Waiting for Admin verification.'); document.getElementById('michiGateForm').style.display='none'; document.getElementById('michiGateWaiting').style.display='block';});
+  }catch(err){alert(err.message);}
+}
+function michiSignIn(){
+  try{
+    var email=document.getElementById('michiEmail').value.trim();
+    var pass=document.getElementById('michiPass').value;
+    firebase.auth().signInWithEmailAndPassword(email,pass).catch(function(e){alert(e.message);});
+  }catch(err){alert(err.message);}
+}
+function michiSignOut(){try{firebase.auth().signOut();}catch(err){}}
+try{
+  if(window.firebase&&firebase.apps&&firebase.apps.length){
+    firebase.auth().onAuthStateChanged(function(user){
+      if(!user){window.MICHI_ROLE='pending';window.MICHI_USER=null;michiShowGate('Sign in to continue.');return;}
+      firebase.firestore().collection('users').doc(user.uid).get().then(function(doc){
+        if(!doc.exists){michiShowGate('No profile yet. Sign up again or ask Admin.');return;}
+        var d=doc.data(); window.MICHI_USER={uid:user.uid,name:d.name||'',email:d.email||user.email,role:d.role||'pending',status:d.status||'pending'};
+        window.MICHI_ROLE=d.role||'pending';
+        if(d.status!=='active'||d.role==='pending'){
+          document.getElementById('michiGateForm').style.display='none';
+          document.getElementById('michiGateWaiting').style.display='block';
+          michiShowGate('Waiting for Admin verification');
+        }else{
+          michiHideGate(); michiApplyWatermark();
+          // Role enforcement: disable Save/Edit/Delete for roles that cannot write in that tab is added in Step 2B, UI unchanged here
+        }
+      }).catch(function(){michiShowGate('Could not load profile. Try again.');});
+    });
+  }else{
+    // GitHub / local mode - no Firebase, keep existing local behaviour, no gate
+    console.log('Michi: Firebase not available, local mode');
+  }
+}catch(err){console.log('Michi auth gate error',err);}
+</script>
+</body></html>
 
 
