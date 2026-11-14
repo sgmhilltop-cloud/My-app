@@ -6071,8 +6071,7 @@ function renderGenTab(){genSeed(); var cur=genGet('michi_gen_current',{'Perkins-
 document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-tab="Generators"]'); if(b){setTimeout(function(){renderGenTab(); var st=document.getElementById('pageSubtitle'); if(st) st.textContent='Generators - Full Combined Service every 200 hrs / 6 months';},50);}});
 setTimeout(renderGenTab,800);
 </script>
-<!-- MICHI AUTH GATE - SAME UI, ADDS SIGN-IN + WAITING + WATERMARK ONLY -->
-<script src="/__/firebase/10.12.2/firebase-app-compat.js"></script>
+
 <script src="/__/firebase/10.12.2/firebase-auth-compat.js"></script>
 <script src="/__/firebase/10.12.2/firebase-firestore-compat.js"></script>
 <script src="/__/firebase/init.js"></script>
