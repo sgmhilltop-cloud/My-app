@@ -6091,5 +6091,39 @@ window.michiContinueOffline=function(){hideGate();alert('Offline mode - data sta
 try{showGate('Sign in to continue.');if(window.firebase&&firebase.apps&&firebase.apps.length){firebase.auth().onAuthStateChanged(function(u){if(!u){showGate('Sign in to continue.');el('michiGateForm').style.display='block';el('michiGateWaiting').style.display='none';return;}firebase.firestore().collection('users').doc(u.uid).get().then(function(d){if(!d.exists){firebase.firestore().collection('users').where('role','==','Admin').where('status','==','active').limit(1).get().then(function(s){if(s.empty){var em=u.email||'';firebase.firestore().collection('users').doc(u.uid).set({name:em,email:em,requestedRole:'Admin',role:'Admin',status:'active',createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){window.MICHI_USER={uid:u.uid,name:em,email:em,role:'Admin',status:'active'};window.MICHI_ROLE='Admin';hideGate();alert('You are now Admin - first Admin created.');});}else{showGate('No profile yet. Ask Admin to verify you.');el('michiGateForm').style.display='none';el('michiGateWaiting').style.display='block';}});return;}var dd=d.data();window.MICHI_USER={uid:u.uid,name:dd.name||'',email:dd.email||u.email,role:dd.role||'pending',status:dd.status||'pending'};window.MICHI_ROLE=dd.role||'pending';if(dd.status!=='active'||dd.role==='pending'){el('michiGateForm').style.display='none';el('michiGateWaiting').style.display='block';showGate('Waiting for Admin verification');}else{hideGate();watermark();}}).catch(function(){showGate('Could not load profile. Try again or Continue offline.');});});}else{showGate('Firebase not loaded. Use Continue offline or reload.');}}catch(e){console.log('Gate error',e);}
 })();
 </script>
+<script>
+(function(){
+function fixGateButtons(){
+  try{
+    var g=document.getElementById('michiAuthGate'); if(!g) return;
+    var btns=g.querySelectorAll('button');
+    btns.forEach(function(b){
+      b.style.setProperty('background','#0f2a1a','important');
+      b.style.setProperty('color','#ffffff','important');
+      b.style.setProperty('border','1px solid #0f2a1a','important');
+    });
+  }catch(e){}
+}
+function addClaimBtn(){
+  try{
+    var w=document.getElementById('michiGateWaiting'); if(!w||document.getElementById('michiClaimBtn')) return;
+    var b=document.createElement('button'); b.id='michiClaimBtn';
+    b.textContent='I am the Admin - Claim Admin';
+    b.setAttribute('style','display:block;width:100%;margin-top:10px;padding:10px;background:#0f2a1a;color:#fff;border:none;border-radius:6px');
+    b.onclick=function(){
+      try{
+        var user=firebase.auth().currentUser; if(!user){alert('Sign in first');return;}
+        firebase.firestore().collection('users').where('role','==','Admin').where('status','==','active').limit(1).get().then(function(snap){
+          if(!snap.empty){alert('Admin already exists. Ask Admin to verify you.');return;}
+          return firebase.firestore().collection('users').doc(user.uid).set({role:'Admin',status:'active'}, {merge:true}).then(function(){alert('You are now Admin.'); location.reload();});
+        }).catch(function(e){alert(e.message);});
+      }catch(e){alert(e.message);}
+    };
+    w.appendChild(b);
+  }catch(e){}
+}
+setInterval(function(){fixGateButtons(); addClaimBtn();}, 1000);
+})();
+</script>
 </body></html>
 
