@@ -530,7 +530,7 @@ function navTo(tab){if((tab==="Users"&&!can("users"))||(tab==="Meters"&&!can("me
 document.querySelectorAll(".nav button").forEach(b=>b.addEventListener("click",()=>navTo(b.dataset.tab)));
 function seedDemo(){demo=true;profile={name:"Demo Admin",role:"Admin",email:"demo@example.com",active:true};currentUser={uid:"demo"};try{ const saved=localStorage.getItem("michi_readings"); if(saved){ readings=JSON.parse(saved); } else { readings=[]; } }catch(e){ readings=[]; }users=[{id:"demo",name:"Demo Admin",email:"demo@example.com",role:"Admin",active:true}];showApp();}
 $("demoBtn").onclick=seedDemo;
-$("loginBtn").onclick=async()=>{if(!app){msg("loginMsg","Firebase is not configured. Use Preview app or add your Firebase web config.","error");return}try{const c=await signInWithEmailAndPassword(auth,$("loginEmail").value.trim(),$("loginPassword").value);if(!c.user.emailVerified){await signOut(auth);msg("loginMsg","Please verify your email using the link sent to your inbox, then sign in again.","error");return}await loadProfile(c.user)}catch(e){msg("loginMsg",e.message,"error")}};
+$("loginBtn").onclick=async()=>{if(!app){msg("loginMsg","Firebase is not configured. Use Preview app or add your Firebase web config.","error");return}try{const c=await signInWithEmailAndPassword(auth,$("loginEmail").value.trim(),$("loginPassword").value);if(!c.user.emailVerified){await signOut(auth);msg("loginMsg","","error");return}await loadProfile(c.user)}catch(e){msg("loginMsg",e.message,"error")}};
 
 // STAFF_REGISTRATION_HANDLER_V1
 $("showRegisterBtn").onclick=()=>{$("registerPanel").classList.remove("hide");$("showRegisterBtn").classList.add("hide");};
