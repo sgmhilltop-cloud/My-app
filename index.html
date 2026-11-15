@@ -443,7 +443,7 @@ window.fmtDateForId = function(d){
   <button id="registerBtn" style="width:100%">Register and Verify Email</button>
   <button class="secondary" id="cancelRegisterBtn" style="width:100%;margin-top:8px">Cancel</button>
 </div>
-  <div id="loginMsg" class="notice">Connect your Firebase project before first use. Demo mode is available for layout preview only.</div>
+  <div id="loginMsg" class="notice"></div>
   <button class="secondary" id="demoBtn" style="width:100%;margin-top:8px">Preview app (demo data)</button>
 </div>
 <div id="appView" class="hide">
@@ -6144,5 +6144,14 @@ document.addEventListener('input',autofill,true);
 </script>
 
 
+
+<style id="michi-loading-bar-style">#michiLoadingBar{position:fixed;top:0;left:0;height:4px;width:0%;background:linear-gradient(90deg,#165fca,#f5b900);z-index:9999;transition:width 0.3s;display:none}</style>
+<div id="michiLoadingBar"></div>
+<script id="michi-loading-bar">
+(function(){
+function showLoading(btn){ try{ var bar=document.getElementById('michiLoadingBar'); if(bar){ bar.style.display='block'; bar.style.width='10%'; setTimeout(function(){bar.style.width='60%';},300); setTimeout(function(){bar.style.width='90%';},1000); } if(btn){ btn.disabled=true; btn.textContent='Signing in... Please wait'; } }catch(e){} }
+document.addEventListener('click',function(e){ try{ var b=e.target.closest('button'); if(!b) return; if(/Sign in securely/i.test(b.textContent)){ showLoading(b); } }catch(e){} });
+})();
+</script>
 </body></html>
 
