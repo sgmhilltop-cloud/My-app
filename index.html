@@ -6143,19 +6143,6 @@ document.addEventListener('input',autofill,true);
 })();
 </script>
 
-<script id="login-fix-safe">
-(function(){
-function hidePublicCreate(){
-  try{
-    document.querySelectorAll('button').forEach(function(b){
-      if(/Create Staff Account/i.test(b.textContent)){ b.style.display='none'; }
-    });
-    var g=document.getElementById('michiAuthGate'); if(g) g.style.display='none';
-    var w=document.getElementById('michiGateWaiting'); if(w) w.style.display='none';
-  }catch(e){}
-}
-setInterval(hidePublicCreate,1000);
-})();
-</script>
+
 </body></html>
 
