@@ -6153,5 +6153,46 @@ function showLoading(btn){ try{ var bar=document.getElementById('michiLoadingBar
 document.addEventListener('click',function(e){ try{ var b=e.target.closest('button'); if(!b) return; if(/Sign in securely/i.test(b.textContent)){ showLoading(b); } }catch(e){} });
 })();
 </script>
+
+<div id="genAdminEditBox" style="position:fixed;top:80px;right:10px;left:10px;z-index:9999;border:2px solid #f5b900;border-radius:10px;padding:12px;background:#fffbe6;box-shadow:0 4px 12px rgba(0,0,0,0.2)">
+<b>✏️ Admin Edit Genset Record</b> <button onclick="document.getElementById('genAdminEditBox').style.display='none'" style="float:right;padding:2px 8px">X</button><br>
+<span style="font-size:12px">Pick Date + Generator, press Load for Edit, correct, then press Update Generator Entry - Admin.</span><br>
+Date: <input id="genEditDate" type="date" style="padding:8px;border-radius:8px;border:1px solid #ccc">
+Generator: <select id="genEditGen" style="padding:8px;border-radius:8px"><option>【entity-Cummins¦canonical_name=Cummins】</option><option>Perkins</option></select>
+<button id="genEditLoadBtn" type="button" style="padding:8px 14px;border-radius:8px;font-weight:800;background:#f5b900;border:0;color:#1a2c42">Load for Edit</button>
+</div>
+<script id="genset-edit-box">
+(function(){
+function findInput(labels){
+  var els=[].slice.call(document.querySelectorAll('input,select,textarea'));
+  for(var i=0;i<els.length;i++){
+    if(['genEditDate','genEditGen','genEditLoadBtn'].indexOf(els[i].id)>-1) continue;
+    var lab=(els[i].getAttribute('placeholder')||'')+' '+(els[i].id||'')+' '+(els[i].name||'');
+    var par=els[i].closest('div'); var pt=par?par.textContent:'';
+    var all=(lab+' '+pt).toUpperCase();
+    for(var j=0;j<labels.length;j++){ if(all.indexOf(labels[j])>-1) return els[i]; }
+  }
+  return null;
+}
+setTimeout(function(){
+  var btn=document.getElementById('genEditLoadBtn'); if(!btn) return;
+  btn.onclick=function(){
+    try{
+      var d=document.getElementById('genEditDate').value;
+      var g=document.getElementById('genEditGen').value;
+      if(!d){ alert('Pick Date first'); return; }
+      var dateInp=findInput(['DATE']); if(dateInp) dateInp.value=d;
+      var genSel=findInput(['GENERATOR']); if(genSel){ for(var i=0;i<genSel.options.length;i++){ if(genSel.options[i].text.indexOf(g)>-1){ genSel.selectedIndex=i; break; } } }
+      window.__genEditing={date:d,gen:g};
+      var saveBtn=[].slice.call(document.querySelectorAll('button')).find(function(x){return /Save Generator Entry/i.test(x.textContent);});
+      if(saveBtn){ saveBtn.textContent='💾 Update Generator Entry - Admin'; saveBtn.setAttribute('data-gen-updating','1'); }
+      document.getElementById('genAdminEditBox').style.display='none';
+      window.scrollTo({top:0,behavior:'smooth'});
+      alert('✏️ Editing '+g+' on '+d+'\n\nCorrect the fields, then press Update Generator Entry - Admin to Save.');
+    }catch(e){ alert(e.message); }
+  };
+},1000);
+})();
+</script>
 </body></html>
 
